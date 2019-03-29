@@ -2,6 +2,7 @@ package com.camellias.relics.core.handlers;
 
 import java.util.Random;
 
+import com.camellias.relics.client.particles.TornadoParticle;
 import com.camellias.relics.core.init.ModItems;
 import com.camellias.relics.core.network.NetworkHandler;
 import com.camellias.relics.core.network.packets.HoldSpacebarMessage;
@@ -59,10 +60,6 @@ public class BaubleEventHandler
 			BlockPos pos = player.getPosition();
 			BlockPos blockpos = pos.add(0, -1, 0);
 			IBlockState state = player.world.getBlockState(blockpos);
-			Random rand = new Random();
-			double d2 = rand.nextGaussian() * 0.02D;
-            double d0 = rand.nextGaussian() * -0.02D;
-            double d1 = rand.nextGaussian() * 0.02D;
 			
 			if(!player.isElytraFlying() || !player.capabilities.isFlying)
 			{
@@ -92,11 +89,19 @@ public class BaubleEventHandler
 					player.setNoGravity(true);
 					player.jumpMovementFactor *= 1.5F;
 					player.fallDistance = 0.0F;
-					player.world.spawnParticle(EnumParticleTypes.CLOUD, 
-							player.posX + (double)(rand.nextFloat() * player.width * 2.0F) - (double)player.width,
-							player.posY,
-							player.posZ + (double)(rand.nextFloat() * player.width * 2.0F) - (double)player.width,
-							d2, d0, d1);
+					
+					if(world.isRemote)
+					{
+						for(int i = 0; i < 8; i++)
+						{
+							double positionX = player.posX;
+							double positionY = player.posY;
+							double positionZ = player.posZ;
+							
+							TornadoParticle tornado = new TornadoParticle(world, positionX, positionY, positionZ, 0, 0, 0);
+							Minecraft.getMinecraft().effectRenderer.addEffect(tornado);
+						}
+					}
 				}
 				else
 				{
@@ -115,7 +120,8 @@ public class BaubleEventHandler
 	{
 		EntityPlayer player = event.getEntityPlayer();
 		
-		if(BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1)
+		if((BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1) && 
+				(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty()))
 		{
 			if(player.ticksExisted > 20)
 			{
@@ -134,7 +140,7 @@ public class BaubleEventHandler
 		EntityPlayer player = event.getEntityPlayer();
 		
 		if((BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1) && 
-				(player.getHeldItemMainhand().isEmpty() || player.getHeldItemOffhand().isEmpty()))
+				(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty()))
 		{
 			if(player.ticksExisted > 20)
 			{
@@ -153,7 +159,7 @@ public class BaubleEventHandler
 		EntityPlayer player = event.getEntityPlayer();
 		
 		if((BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1) && 
-				(player.getHeldItemMainhand().isEmpty() || player.getHeldItemOffhand().isEmpty()))
+				(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty()))
 		{
 			if(player.ticksExisted > 20)
 			{

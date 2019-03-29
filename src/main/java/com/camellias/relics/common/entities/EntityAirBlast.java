@@ -3,6 +3,9 @@ package com.camellias.relics.common.entities;
 import java.util.Random;
 import java.util.UUID;
 
+import com.camellias.relics.client.particles.TornadoParticle;
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,7 +16,6 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.world.World;
@@ -67,17 +69,17 @@ public class EntityAirBlast extends EntityThrowable
 		super.onEntityUpdate();
 		setSize(1.0F, 2.0F);
 		
-		Random rand = new Random();
-		double d0 = rand.nextGaussian() * -0.1D;
-		double d1 = rand.nextGaussian() * 0.1D;
-		
-		for(int i = 0; i < 8; i++)
+		if(world.isRemote)
 		{
-			world.spawnParticle(EnumParticleTypes.CLOUD, 
-					posX + (double)(rand.nextFloat() * width * 2.0F) - (double)width,
-					posY + (double)(rand.nextFloat() * height * 2.0F) - (double)height,
-					posZ + (double)(rand.nextFloat() * width * 2.0F) - (double)width,
-					motionX * d1, motionY * d0, motionZ * d1);
+			for(int i = 0; i < 8; i++)
+			{
+				double positionX = posX;
+				double positionY = posY;
+				double positionZ = posZ;
+				
+				TornadoParticle tornado = new TornadoParticle(world, positionX, positionY, positionZ, 0, 0, 0);
+				Minecraft.getMinecraft().effectRenderer.addEffect(tornado);
+			}
 		}
 		
 		if(ticksExisted < 100)
