@@ -1,4 +1,4 @@
-package com.camellias.relics.handlers;
+package com.camellias.relics.core.handlers;
 
 import java.io.File;
 

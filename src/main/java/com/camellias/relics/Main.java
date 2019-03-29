@@ -3,8 +3,8 @@ package com.camellias.relics;
 import java.io.File;
 
 import com.camellias.relics.common.tabs.CreativeTabRelics;
-import com.camellias.relics.handlers.RegistryHandler;
-import com.camellias.relics.proxy.CommonProxy;
+import com.camellias.relics.core.handlers.RegistryHandler;
+import com.camellias.relics.core.proxy.CommonProxy;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraftforge.fml.common.Loader;
@@ -46,6 +46,7 @@ public class Main
 			thaumcraftLoaded = true;
 		}
 		
+		RegistryHandler.clientRegistries(event);
 		RegistryHandler.preInitRegistries(event);
 	}
 	

@@ -1,4 +1,6 @@
-package com.camellias.relics.network.packets;
+package com.camellias.relics.core.network.packets;
+
+import java.util.Scanner;
 
 import com.camellias.relics.Main;
 
@@ -10,16 +12,16 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class HoldLeftClickMessage implements IMessage
+public class HoldSpacebarMessage implements IMessage
 {
-	public HoldLeftClickMessage()
+	public HoldSpacebarMessage()
 	{
 		
 	}
 	
 	public int playerID;
 	
-	public HoldLeftClickMessage(EntityPlayer player)
+	public HoldSpacebarMessage(EntityPlayer player)
 	{
 		this.playerID = player.getEntityId();
 	}
@@ -38,19 +40,18 @@ public class HoldLeftClickMessage implements IMessage
 	
 //-------------------------------------------------------------------------------------------------------------------------//
 	
-	public static class HoldLeftClickPacketHandler implements IMessageHandler<HoldLeftClickMessage, IMessage>
+	public static class HoldSpacebarPacketHandler implements IMessageHandler<HoldSpacebarMessage, IMessage>
 	{
 		@Override
-		public IMessage onMessage(HoldLeftClickMessage message, MessageContext ctx)
+		public IMessage onMessage(HoldSpacebarMessage message, MessageContext ctx)
 		{
 			Main.proxy.getThreadListener(ctx).addScheduledTask(() ->
 			{
 				if(Main.proxy.getPlayer(ctx) != null)
 				{
 					EntityPlayer player = (EntityPlayer) Main.proxy.getPlayer(ctx).world.getEntityByID(message.playerID);
-					GameSettings settings = new GameSettings();
 					
-					settings.isKeyDown(settings.keyBindAttack);
+					player.motionY = 0.25D;
 				}
 			});
 			

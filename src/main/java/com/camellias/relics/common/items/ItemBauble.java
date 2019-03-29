@@ -1,8 +1,8 @@
 package com.camellias.relics.common.items;
 
 import com.camellias.relics.Main;
-import com.camellias.relics.init.ModItems;
-import com.camellias.relics.util.IHasModel;
+import com.camellias.relics.core.init.ModItems;
+import com.camellias.relics.core.util.IHasModel;
 
 import baubles.api.BaubleType;
 import baubles.api.BaublesApi;

@@ -1,6 +1,7 @@
-package com.camellias.relics.network.packets;
+package com.camellias.relics.core.network.packets;
 
 import com.camellias.relics.Main;
+import com.camellias.relics.common.entities.EntityAirBlast;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
@@ -48,6 +49,14 @@ public class SpawnAirBlastMessage implements IMessage
 				{
 					EntityPlayer player = (EntityPlayer) Main.proxy.getPlayer(ctx).world.getEntityByID(message.playerID);
 					World world = ctx.getServerHandler().player.getServerWorld();
+					
+					if(!world.isRemote)
+					{
+						EntityAirBlast air_blast = new EntityAirBlast(world, player);
+						air_blast.shoot(player, player.rotationPitch, player.rotationYaw, 0.0F, 0.35F, 1.0F);
+						air_blast.setPosition(player.posX, player.posY, player.posZ);
+						world.spawnEntity(air_blast);
+					}
 				}
 			});
 			

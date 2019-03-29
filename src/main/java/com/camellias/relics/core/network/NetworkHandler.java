@@ -1,10 +1,8 @@
-package com.camellias.relics.network;
+package com.camellias.relics.core.network;
 
 import com.camellias.relics.Reference;
-import com.camellias.relics.network.packets.HoldLeftClickMessage;
-import com.camellias.relics.network.packets.HoldRightClickMessage;
-import com.camellias.relics.network.packets.HoldSpacebarMessage;
-import com.camellias.relics.network.packets.SpawnAirBlastMessage;
+import com.camellias.relics.core.network.packets.HoldSpacebarMessage;
+import com.camellias.relics.core.network.packets.SpawnAirBlastMessage;
 
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
@@ -25,10 +23,6 @@ public class NetworkHandler
 	{
 		INSTANCE.registerMessage(HoldSpacebarMessage.HoldSpacebarPacketHandler.class, HoldSpacebarMessage.class, next(), Side.SERVER);
 		INSTANCE.registerMessage(HoldSpacebarMessage.HoldSpacebarPacketHandler.class, HoldSpacebarMessage.class, next(), Side.CLIENT);
-		INSTANCE.registerMessage(HoldRightClickMessage.HoldRightClickPacketHandler.class, HoldRightClickMessage.class, next(), Side.SERVER);
-		INSTANCE.registerMessage(HoldRightClickMessage.HoldRightClickPacketHandler.class, HoldRightClickMessage.class, next(), Side.CLIENT);
-		INSTANCE.registerMessage(HoldLeftClickMessage.HoldLeftClickPacketHandler.class, HoldLeftClickMessage.class, next(), Side.SERVER);
-		INSTANCE.registerMessage(HoldLeftClickMessage.HoldLeftClickPacketHandler.class, HoldLeftClickMessage.class, next(), Side.CLIENT);
 		
 		INSTANCE.registerMessage(SpawnAirBlastMessage.SpawnAirBlastPacketHandler.class, SpawnAirBlastMessage.class, next(), Side.SERVER);
 		INSTANCE.registerMessage(SpawnAirBlastMessage.SpawnAirBlastPacketHandler.class, SpawnAirBlastMessage.class, next(), Side.CLIENT);

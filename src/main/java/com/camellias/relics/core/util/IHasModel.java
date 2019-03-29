@@ -1,4 +1,4 @@
-package com.camellias.relics.util;
+package com.camellias.relics.core.util;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;

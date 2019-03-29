@@ -1,4 +1,4 @@
-package com.camellias.relics.proxy;
+package com.camellias.relics.core.proxy;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;

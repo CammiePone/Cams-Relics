@@ -1,4 +1,4 @@
-package com.camellias.relics.init;
+package com.camellias.relics.core.init;
 
 import java.util.ArrayList;
 import java.util.List;

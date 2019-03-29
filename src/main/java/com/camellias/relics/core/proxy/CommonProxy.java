@@ -1,4 +1,4 @@
-package com.camellias.relics.proxy;
+package com.camellias.relics.core.proxy;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
