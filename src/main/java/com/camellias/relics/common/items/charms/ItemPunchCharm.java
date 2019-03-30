@@ -26,4 +26,28 @@ public class ItemPunchCharm extends ItemBauble
 	{
 		return BaubleType.CHARM;
 	}
+	
+	@Override
+	public void onEquipped(ItemStack itemstack, EntityLivingBase player)
+	{
+		if(!player.world.isRemote)
+		{
+			Multimap<String, AttributeModifier> attributes = HashMultimap.create();
+			
+			attributes.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(uuid, "Punch Charm", 4, 0));
+			player.getAttributeMap().applyAttributeModifiers(attributes);
+		}
+	}
+	
+	@Override
+	public void onUnequipped(ItemStack itemstack, EntityLivingBase player)
+	{
+		if(!player.world.isRemote)
+		{
+			Multimap<String, AttributeModifier> attributes = HashMultimap.create();
+			
+			attributes.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(uuid, "Punch Charm", 4, 0));
+			player.getAttributeMap().removeAttributeModifiers(attributes);
+		}
+	}
 }

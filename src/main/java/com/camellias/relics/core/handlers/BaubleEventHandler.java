@@ -16,7 +16,6 @@ import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -33,18 +32,25 @@ public class BaubleEventHandler
 	{
 		if((event.getSource().getTrueSource() instanceof EntityPlayer) && (event.getEntityLiving() instanceof EntityLivingBase))
 		{
-			EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+			EntityPlayer player = (EntityPlayer) event.getSource().getTrueSource();
 			EntityLivingBase target = (EntityLivingBase) event.getEntityLiving();
 			
-			if((BaublesApi.isBaubleEquipped(player, ModItems.PUNCH_CHARM) > -1) && (player.getHeldItemMainhand().isEmpty()))
+			if(BaublesApi.isBaubleEquipped(player, ModItems.PUNCH_CHARM) > -1)
 			{
-				target.hurtResistantTime = 0;
-				
-				if(player.isAirBorne)
+				if(player.getHeldItemMainhand().isEmpty())
 				{
-					float amount = event.getAmount();
+					target.hurtResistantTime = 0;
 					
-					event.setAmount(amount * 4);
+					if(player.isAirBorne)
+					{
+						float amount = event.getAmount();
+						
+						event.setAmount(amount * 4);
+					}
+				}
+				else
+				{
+					event.setAmount(1);
 				}
 			}
 		}
@@ -53,9 +59,43 @@ public class BaubleEventHandler
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent event)
 	{
-		if(BaublesApi.isBaubleEquipped(event.player, ModItems.AIR_CHARM) > -1)
+		EntityPlayer player = event.player;
+		
+		/**
+		 * Bauble right clicks
+		 */
+		if(player.world.isRemote)
 		{
-			EntityPlayer player = event.player;
+			GameSettings settings = Minecraft.getMinecraft().gameSettings;
+			KeyBinding rclick = settings.keyBindUseItem;
+			
+			if(settings.isKeyDown(rclick))
+			{
+				if(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty())
+				{
+					/**
+					 * Charm of Typhoons
+					 */
+					if(BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1)
+					{
+						if(player.ticksExisted > 20)
+						{
+							if(!player.isSneaking())
+							{
+								NetworkHandler.INSTANCE.sendToServer(new SpawnAirBlastMessage(player));
+								player.ticksExisted = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		/**
+		 * Air charm floatiness
+		 */
+		if(BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1)
+		{
 			World world = player.world;
 			BlockPos pos = player.getPosition();
 			BlockPos blockpos = pos.add(0, -1, 0);
@@ -92,13 +132,14 @@ public class BaubleEventHandler
 					
 					if(world.isRemote)
 					{
-						for(int i = 0; i < 8; i++)
+						for(int i = 0; i < 5; i++)
 						{
-							double positionX = player.posX;
-							double positionY = player.posY;
-							double positionZ = player.posZ;
+							Random rand = world.rand;
+							double positionX = player.posX + (double)(rand.nextFloat() * player.width * 2.0F) - (double)player.width;
+							double positionY = player.posY - 0.5D;
+							double positionZ = player.posZ + (double)(rand.nextFloat() * player.width * 2.0F) - (double)player.width;
 							
-							TornadoParticle tornado = new TornadoParticle(world, positionX, positionY, positionZ, 0, 0, 0);
+							TornadoParticle tornado = new TornadoParticle(world, positionX, positionY, positionZ, 0, 0.05D, 0);
 							Minecraft.getMinecraft().effectRenderer.addEffect(tornado);
 						}
 					}
@@ -111,63 +152,6 @@ public class BaubleEventHandler
 			else
 			{
 				player.setNoGravity(false);
-			}
-		}
-	}
-	
-	@SubscribeEvent
-	public static void onPlayerRightClick(PlayerInteractEvent.RightClickEmpty event)
-	{
-		EntityPlayer player = event.getEntityPlayer();
-		
-		if((BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1) && 
-				(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty()))
-		{
-			if(player.ticksExisted > 20)
-			{
-				if(!player.isSneaking())
-				{
-					NetworkHandler.INSTANCE.sendToServer(new SpawnAirBlastMessage(player));
-					player.ticksExisted = 0;
-				}
-			}
-		}
-	}
-	
-	@SubscribeEvent
-	public static void onPlayerRightClick(PlayerInteractEvent.EntityInteract event)
-	{
-		EntityPlayer player = event.getEntityPlayer();
-		
-		if((BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1) && 
-				(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty()))
-		{
-			if(player.ticksExisted > 20)
-			{
-				if(!player.isSneaking())
-				{
-					NetworkHandler.INSTANCE.sendToServer(new SpawnAirBlastMessage(player));
-					player.ticksExisted = 0;
-				}
-			}
-		}
-	}
-	
-	@SubscribeEvent
-	public static void onPlayerRightClick(PlayerInteractEvent.RightClickBlock event)
-	{
-		EntityPlayer player = event.getEntityPlayer();
-		
-		if((BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1) && 
-				(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty()))
-		{
-			if(player.ticksExisted > 20)
-			{
-				if(!player.isSneaking())
-				{
-					NetworkHandler.INSTANCE.sendToServer(new SpawnAirBlastMessage(player));
-					player.ticksExisted = 0;
-				}
 			}
 		}
 	}

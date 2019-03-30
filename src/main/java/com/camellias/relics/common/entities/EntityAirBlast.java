@@ -71,13 +71,14 @@ public class EntityAirBlast extends EntityThrowable
 		
 		if(world.isRemote)
 		{
-			for(int i = 0; i < 8; i++)
+			for(int i = 0; i < 5; i++)
 			{
-				double positionX = posX;
+				Random rand = world.rand;
+				double positionX = posX + (double)(rand.nextFloat() * width * 2.0F) - (double)width;
 				double positionY = posY;
-				double positionZ = posZ;
+				double positionZ = posZ + (double)(rand.nextFloat() * width * 2.0F) - (double)width;
 				
-				TornadoParticle tornado = new TornadoParticle(world, positionX, positionY, positionZ, 0, 0, 0);
+				TornadoParticle tornado = new TornadoParticle(world, positionX, positionY, positionZ, 0, 0.1D, 0);
 				Minecraft.getMinecraft().effectRenderer.addEffect(tornado);
 			}
 		}

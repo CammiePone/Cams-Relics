@@ -28,9 +28,4 @@ public class ItemAirCharm extends ItemBauble
 			player.setNoGravity(false);
 		}
 	}
-	
-	public static boolean isUsable(ItemStack itemstack)
-	{
-		return itemstack.getItemDamage() < itemstack.getMaxDamage() - 1;
-	}
 }

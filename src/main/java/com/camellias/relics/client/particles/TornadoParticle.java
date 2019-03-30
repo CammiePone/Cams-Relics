@@ -1,5 +1,7 @@
 package com.camellias.relics.client.particles;
 
+import com.camellias.relics.Reference;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -10,9 +12,9 @@ import net.minecraft.world.World;
 
 public class TornadoParticle extends Particle
 {
-	private final ResourceLocation TEXTURE = new ResourceLocation("relics:textures/particles/tornado");
+	private final ResourceLocation TEXTURE = new ResourceLocation(Reference.MODID + ":textures/particles/tornado");
 	private double realX = posX, realZ = posZ;
-	private static final double rotationSpeed = 0.65D;
+	private static final double rotationSpeed = 0.8D;
 	
 	public TornadoParticle(World world, double x, double y, double z, double velocityX, double velocityY, double velocityZ)
 	{
@@ -54,13 +56,10 @@ public class TornadoParticle extends Particle
 	public void onUpdate()
 	{
 		super.onUpdate();
-		float radius = 0.75F;
-		prevPosX = posX;
-		prevPosY = posY;
-		prevPosZ = posZ;
+		double radius = 0.075D * particleAge;
 		
 		posX = realX + radius * Math.sin(particleAge * rotationSpeed);
-		posY += 0.01D;
+		posY += 0.5D;
 		posZ = realZ + radius * Math.cos(particleAge * rotationSpeed);
 		
 		if(this.particleMaxAge-- <= 0)

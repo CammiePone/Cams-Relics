@@ -1,9 +1,8 @@
 item.air_charm.name=Charm of Typhoons
-item.thousand_punch_charm.name=Charm of One Thousand Punches
-
-
-
-tile.relic_pedestal.name=Pedestal
+item.earth_charm.name=Charm of The Crust
+item.fire_charm.name=Charm of (TBD)
+item.water_charm.name=Charm of The Seas
+item.punch_charm.name=Charm of One Thousand Punches
 
 
 
