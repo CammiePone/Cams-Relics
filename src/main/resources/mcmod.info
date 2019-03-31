@@ -1,7 +1,7 @@
 [
 {
-  "modid": "relics",
-  "name": "Relics",
+  "modid": "camsrelics",
+  "name": "Cam's Relics",
   "description": "Adds randomly spawning relics that can be found in dungeons throughout the world.",
   "version": "0.1",
   "mcversion": "1.12.2",
