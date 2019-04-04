@@ -52,15 +52,15 @@ public class SpawnFireMessage implements IMessage
 					
 					if(!world.isRemote)
 					{
-						if(player.isAirBorne)
-						{
-							
-						}
-						else
+						if(!player.isSneaking())
 						{
 							EntityFireEmber fire_ember = new EntityFireEmber(world, player);
 							fire_ember.shoot(player, player.rotationPitch, player.rotationYaw, 0.0F, 2.0F, 1.0F);
 							world.spawnEntity(fire_ember);
+						}
+						else
+						{
+							
 						}
 					}
 				}

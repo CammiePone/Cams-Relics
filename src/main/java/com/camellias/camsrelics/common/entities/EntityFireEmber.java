@@ -3,9 +3,6 @@ package com.camellias.camsrelics.common.entities;
 import java.util.Random;
 import java.util.UUID;
 
-import com.camellias.camsrelics.client.particles.TornadoParticle;
-
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,19 +16,23 @@ import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 
 public class EntityFireEmber extends EntityThrowable
 {
-	private static final DataParameter<String> THROWER = EntityDataManager.createKey(EntityAirTornado.class, DataSerializers.STRING);
+	protected EntityPlayer owner;
+	private String ownerName;
 	
 	public EntityFireEmber(World world)
 	{
 		super(world);
+		setSize(0.5F, 0.5F);
 	}
 	
 	public EntityFireEmber(World world, EntityPlayer player)
 	{
 		super(world, player);
+		this.owner = player;
 	}
 	
 	@Override
@@ -42,11 +43,11 @@ public class EntityFireEmber extends EntityThrowable
 			if(result.typeOfHit == Type.ENTITY)
 			{
 				Entity entity = result.entityHit;
-				EntityLivingBase thrower = getThrower();
+				EntityLivingBase owner = getOwner();
 				
-				if(entity != thrower)
+				if(entity != owner)
 				{
-					entity.attackEntityFrom(DamageSource.IN_FIRE, 4F);
+					entity.attackEntityFrom(DamageSource.ON_FIRE, 4F);
 					entity.setFire(10);
 				}
 			}
@@ -58,15 +59,12 @@ public class EntityFireEmber extends EntityThrowable
 	{
 		setEntityInvulnerable(true);
 		setNoGravity(true);
-		setSize(0.5F, 0.5F);
-		dataManager.register(THROWER, "");
 	}
 	
 	@Override
 	public void onUpdate()
 	{
 		super.onEntityUpdate();
-		setSize(0.5F, 0.5F);
 		
 		if(world.isRemote)
 		{
@@ -91,40 +89,55 @@ public class EntityFireEmber extends EntityThrowable
 	public void writeEntityToNBT(NBTTagCompound tag)
 	{
 		super.writeEntityToNBT(tag);
-		tag.setString("thrower", dataManager.get(THROWER));
+		
+		if((this.ownerName == null || this.ownerName.isEmpty()) && this.owner instanceof EntityPlayer)
+		{
+			this.ownerName = this.owner.getName();
+		}
+		
+		tag.setString("ownerName", this.ownerName == null ? "" : this.ownerName);
 	}
 	
 	@Override
 	public void readEntityFromNBT(NBTTagCompound tag)
 	{
 		super.readEntityFromNBT(tag);
-		tag.setString("thrower", dataManager.get(THROWER));
+		
+		this.owner = null;
+		this.ownerName = tag.getString("ownerName");
+		
+		if(this.ownerName != null && this.ownerName.isEmpty())
+		{
+			this.ownerName = null;
+		}
+		
+		this.owner = this.getOwner();
 	}
 	
-	public EntityLivingBase getThrower()
+	public EntityPlayer getOwner()
 	{
-		String uuid = dataManager.get(THROWER);
-		
-		if(uuid == null || uuid.isEmpty())
+		if(this.owner == null && this.ownerName != null && !this.ownerName.isEmpty())
 		{
-			return null;
-		}
-		
-		EntityLivingBase player = world.getPlayerEntityByUUID(UUID.fromString(uuid));
-		
-		if(player != null)
-		{
-			return player;
-		}
-		
-		for(Entity entity : world.getLoadedEntityList())
-		{
-			if(entity instanceof EntityLivingBase && uuid.equals(entity.getUniqueID().toString()))
+			this.owner = this.world.getPlayerEntityByName(this.ownerName);
+			
+			if(this.owner == null && this.world instanceof WorldServer)
 			{
-				return (EntityLivingBase) entity;
+				try
+				{
+					Entity entity = ((WorldServer)this.world).getEntityFromUuid(UUID.fromString(this.ownerName));
+					
+					if(entity instanceof EntityPlayer)
+					{
+						this.owner = (EntityPlayer)entity;
+					}
+				}
+				catch(Throwable var2)
+				{
+					this.owner = null;
+				}
 			}
 		}
 		
-		return null;
+		return this.owner;
 	}
 }

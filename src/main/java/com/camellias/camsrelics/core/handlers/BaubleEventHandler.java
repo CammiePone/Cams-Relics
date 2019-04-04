@@ -17,18 +17,20 @@ import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.MobEffects;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 @EventBusSubscriber
 public class BaubleEventHandler
 {
+	public static int baubleTimer = 0;
+	
 	@SubscribeEvent
 	public static void onPlayerAttack(LivingHurtEvent event)
 	{
@@ -59,19 +61,20 @@ public class BaubleEventHandler
 	}
 	
 	@SubscribeEvent
-	public static void onPlayerTick(PlayerTickEvent event)
+	public static void onClientTick(ClientTickEvent event)
 	{
-		EntityPlayer player = event.player;
-		
-		/**
-		 * Bauble right clicks
-		 */
-		if(player.world.isRemote)
+		if(event.phase == Phase.END)
 		{
+			EntityPlayer player = Minecraft.getMinecraft().player;
 			GameSettings settings = Minecraft.getMinecraft().gameSettings;
+			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 			KeyBinding rclick = settings.keyBindUseItem;
+			baubleTimer++;
 			
-			if(settings.isKeyDown(rclick))
+			/**
+			 * Bauble right clicks
+			 */
+			if(settings.isKeyDown(rclick) && gui == null)
 			{
 				if(player.getHeldItemMainhand().isEmpty() && player.getHeldItemOffhand().isEmpty())
 				{
@@ -80,10 +83,10 @@ public class BaubleEventHandler
 					 */
 					if(BaublesApi.isBaubleEquipped(player, ModItems.AIR_CHARM) > -1)
 					{
-						if(player.ticksExisted > 20)
+						if(baubleTimer >= 20)
 						{
 							NetworkHandler.INSTANCE.sendToServer(new SpawnAirMessage(player));
-							player.ticksExisted = 0;
+							baubleTimer = 0;
 						}
 					}
 					
@@ -92,17 +95,21 @@ public class BaubleEventHandler
 					 */
 					if(BaublesApi.isBaubleEquipped(player, ModItems.FIRE_CHARM) > -1)
 					{
-						if(player.ticksExisted > 20)
+						if(baubleTimer >= 20)
 						{
 							NetworkHandler.INSTANCE.sendToServer(new SpawnFireMessage(player));
-							player.ticksExisted = 0;
+							baubleTimer = 0;
 						}
-						
-						player.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 10, 0, true, false));
 					}
 				}
 			}
 		}
+	}
+	
+	@SubscribeEvent
+	public static void onPlayerTick(PlayerTickEvent event)
+	{
+		EntityPlayer player = event.player;
 		
 		/**
 		 * Air charm floatiness

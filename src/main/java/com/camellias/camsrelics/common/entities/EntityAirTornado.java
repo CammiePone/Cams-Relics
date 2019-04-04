@@ -1,5 +1,6 @@
 package com.camellias.camsrelics.common.entities;
 
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -10,48 +11,36 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityThrowable;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.RayTraceResult.Type;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 
 public class EntityAirTornado extends EntityThrowable
 {
-	private static final DataParameter<String> THROWER = EntityDataManager.createKey(EntityAirTornado.class, DataSerializers.STRING);
+	protected EntityPlayer owner;
+	private String ownerName;
 	
 	public EntityAirTornado(World world)
 	{
 		super(world);
+		setSize(1.0F, 2.0F);
 	}
 	
 	public EntityAirTornado(World world, EntityPlayer player)
 	{
 		super(world, player);
+		this.owner = player;
 	}
 	
 	@Override
 	protected void onImpact(RayTraceResult result)
 	{
-		if(!world.isRemote)
-		{
-			if(result.typeOfHit == Type.ENTITY)
-			{
-				Entity entity = result.entityHit;
-				EntityLivingBase thrower = getThrower();
-				
-				if(entity != thrower)
-				{
-					boolean flag = entity.attackEntityFrom(DamageSource.FLY_INTO_WALL, 2F);
-					
-					entity.setPositionAndUpdate(this.posX, this.posY + 0.5, this.posZ);
-				}
-			}
-		}
+		
 	}
 	
 	@Override
@@ -59,15 +48,14 @@ public class EntityAirTornado extends EntityThrowable
 	{
 		setEntityInvulnerable(true);
 		setNoGravity(true);
-		setSize(1.0F, 2.0F);
-		dataManager.register(THROWER, "");
 	}
 	
 	@Override
 	public void onEntityUpdate()
 	{
 		super.onEntityUpdate();
-		setSize(1.0F, 2.0F);
+		
+		this.playSound(SoundEvents.ITEM_ELYTRA_FLYING, 2.0F, 1.0F);
 		
 		if(world.isRemote)
 		{
@@ -83,14 +71,45 @@ public class EntityAirTornado extends EntityThrowable
 			}
 		}
 		
-		if(ticksExisted < 100)
+		if(!world.isRemote)
 		{
-			motionY += 0.0015;
-		}
-		
-		if(ticksExisted > 100)
-		{
-			setDead();
+			List<Entity> list = this.world.<Entity>getEntitiesWithinAABB(Entity.class, this.getEntityBoundingBox().grow(0.5D));
+			EntityPlayer owner = getOwner();
+			
+			if(!list.isEmpty())
+			{
+				for(Entity entity : list)
+				{
+					if((entity != owner) && !(entity instanceof EntityAirTornado))
+					{
+						entity.attackEntityFrom(DamageSource.FLY_INTO_WALL, 2F);
+						
+						Vec3d entityPos = entity.getPositionVector();
+						double distanceSq = entityPos.squareDistanceTo(this.getPositionVector());
+						double acceleration = Math.max(distanceSq, 0.0001f);
+						Vec3d dir = this.getPositionVector().subtract(entityPos).normalize();
+						
+						dir = new Vec3d(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
+						
+						if(entity instanceof EntityPlayer)
+						{
+							continue;
+						}
+						
+						entity.addVelocity(dir.x, dir.y, dir.z);
+					}
+				}
+			}
+			
+			if(ticksExisted < 100)
+			{
+				motionY += 0.0015;
+			}
+			
+			if(ticksExisted > 100)
+			{
+				setDead();
+			}
 		}
 	}
 	
@@ -98,40 +117,55 @@ public class EntityAirTornado extends EntityThrowable
 	public void writeEntityToNBT(NBTTagCompound tag)
 	{
 		super.writeEntityToNBT(tag);
-		tag.setString("thrower", dataManager.get(THROWER));
+		
+		if((this.ownerName == null || this.ownerName.isEmpty()) && this.owner instanceof EntityPlayer)
+		{
+			this.ownerName = this.owner.getName();
+		}
+		
+		tag.setString("ownerName", this.ownerName == null ? "" : this.ownerName);
 	}
 	
 	@Override
 	public void readEntityFromNBT(NBTTagCompound tag)
 	{
 		super.readEntityFromNBT(tag);
-		tag.setString("thrower", dataManager.get(THROWER));
+		
+		this.owner = null;
+		this.ownerName = tag.getString("ownerName");
+		
+		if(this.ownerName != null && this.ownerName.isEmpty())
+		{
+			this.ownerName = null;
+		}
+		
+		this.owner = this.getOwner();
 	}
 	
-	public EntityLivingBase getThrower()
+	public EntityPlayer getOwner()
 	{
-		String uuid = dataManager.get(THROWER);
-		
-		if(uuid == null || uuid.isEmpty())
+		if(this.owner == null && this.ownerName != null && !this.ownerName.isEmpty())
 		{
-			return null;
-		}
-		
-		EntityLivingBase player = world.getPlayerEntityByUUID(UUID.fromString(uuid));
-		
-		if(player != null)
-		{
-			return player;
-		}
-		
-		for(Entity entity : world.getLoadedEntityList())
-		{
-			if(entity instanceof EntityLivingBase && uuid.equals(entity.getUniqueID().toString()))
+			this.owner = this.world.getPlayerEntityByName(this.ownerName);
+			
+			if(this.owner == null && this.world instanceof WorldServer)
 			{
-				return (EntityLivingBase) entity;
+				try
+				{
+					Entity entity = ((WorldServer)this.world).getEntityFromUuid(UUID.fromString(this.ownerName));
+					
+					if(entity instanceof EntityPlayer)
+					{
+						this.owner = (EntityPlayer)entity;
+					}
+				}
+				catch(Throwable var2)
+				{
+					this.owner = null;
+				}
 			}
 		}
 		
-		return null;
+		return this.owner;
 	}
 }
